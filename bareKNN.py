@@ -2,15 +2,22 @@
 
 # Create a classifier
 import random
+import sys
+import getopt
 from scipy.spatial import distance
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
-
+# Eculidean distance
 def euc(a, b):
     return distance.euclidean(a,b)
 
+# City block
 def cb(a, b):
     return distance.cityblock(a, b)
 
+# Minkowski
 def mink(a, b):
     return distance.minkowski(a, b, 1)
 
@@ -39,20 +46,35 @@ class bareKNN():
                 best_index = i
         return self.y_train[best_index]
 
+    def KNN(self):
+        iris = datasets.load_iris()
 
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+        X = iris.data
+        y = iris.target
 
-iris = datasets.load_iris()
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = .5)
 
-X = iris.data
-y = iris.target
+        my_classifier = bareKNN()
+        my_classifier.fit(X_train, y_train)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = .5)
+        predictions = my_classifier.predict(X_test)
+        print("Accuracy:", accuracy_score(y_test, predictions))
 
-my_classifier = bareKNN()
-my_classifier.fit(X_train, y_train)
+def main(argv):
+    try:
+        opts, args = getopt.getopt(argv, "ha:",["algorithm"])
+    except getopt.GetoptError:
+        print("bareKNN.py -a <algorithm>")
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print("bareKNN.py -a <algorithm: default = Eculidean>")
+            sys.exit()
+        elif opt in ("-a"):
+            algorithm = arg
 
-predictions = my_classifier.predict(X_test)
-print(accuracy_score(y_test, predictions))
+    nearest = bareKNN()
+    nearest.KNN()
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
